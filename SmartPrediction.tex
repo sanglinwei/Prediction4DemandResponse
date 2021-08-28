@@ -1,0 +1,356 @@
+\documentclass[journal]{IEEEtran}
+
+\ifCLASSINFOpdf
+\else
+\fi
+
+\usepackage{hyperref}        
+\usepackage{url}             
+\usepackage{booktabs} 
+\usepackage{amsfonts} 
+\usepackage{nicefrac}        
+\usepackage{microtype}       
+\usepackage{bookmark}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts} 
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{lemma}{Lemma}
+
+\begin{document}
+
+\title{Smart prediction for demand response}
+
+\author{Linwei Sang
+\thanks{Work in progress}
+}
+
+\maketitle
+
+\begin{abstract}
+The abstract goes here.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Price prediction, optimization model
+\end{IEEEkeywords}
+
+
+\IEEEpeerreviewmaketitle
+
+
+\section{Introduction}
+\subsection{Background}
+
+\subsection{Motivation}
+
+\subsection{Contributions}
+
+\subsection{Related researches}
+
+\section{Problem Formulation}
+Overall formulation.
+
+\subsection{Price-based demand response programs}
+(Refer to \cite{Chitsaz2018})
+\subsubsection{Battery storage formulation}
+The battery energy storage system (BESS) usually works at charging state when electricity price is low and at discharging state when electricity prices high. The operation of storage system usually follows the electricity price information to maximize the benefits from markets as:
+\begin{equation}
+  \label{ESbigM}
+  \begin{aligned}
+    \max_{P} B(P; \lambda) = &\lambda^T P = \sum_{t=1}^T \lambda_t P_t \\
+    \text{where }  P \in \Phi
+  \end{aligned}
+\end{equation}
+where its objective is to maximize the net energy benefits by optimizing its operating power $P$ (MW) under market electricity prices $\lambda$ (\$/MWh), denoted by $B(P; \lambda)$; the feasible region ($\Phi$) of decision variables $P$ is subject to a set of operation and technical constraints as follows:
+\begin{equation}
+  \label{Contrs1}
+  \begin{aligned}
+    P = P_{dis} - P_{ch} \\
+  \end{aligned}
+\end{equation}
+Equation (\ref{Contrs1}) illustrates the operating power $P$ of BESS is composed of charging and discharging parts; $P_dis$ denotes the charging of BESS from grid, and $P_ch$ denotes the discharging of BESS to grid.
+\begin{equation}
+  \label{Contrs2}
+  \begin{aligned}
+    &E(t) = E(t-1) + \eta_{ch} P_{ch}(t) - \frac{P_{dis}(t)}{\eta_{dis}} \quad t=2,..,T\\
+    &E_{min} \leq E(t) \leq E_{max} \\
+  \end{aligned}
+\end{equation}
+Equation (\ref{Contrs2}) ensures the stored energy ($E(t)$) in the BESS at time \textit{t} lies in allowable range;, $E_{min}$, $E_{max}$ refer to the minimum, maximum capacity of the battery system.
+\begin{equation}
+  \label{Contrs3}
+  \begin{aligned}
+    & 0 \leq P_{dis} \leq P_{dis}^{max} \\
+    & 0 \leq P_{ch} \leq P_{ch}^{max}  \\
+    & 0 \leq P_{dis} \leq M \mu_{dis}   \\
+    & 0 \leq P_{ch} \leq M \mu_{ch}     \\
+    & \mu_{dis}(t) + \mu_{ch}(t) \leq 1 \quad t=1,...,T\\
+  \end{aligned}
+\end{equation}
+Equation (\ref{Contrs3}) prevents the simultaneously charging and discharging of BESS by utilizing the big-M method; M is the large positive number; $\mu_{dis}$ and $\mu_{ch}$ are binary indicators of discharging and charging state, where 1 means in the state and 0 means the opposite; $P_{dis}^{max}$ and $P_{ch}^{max}$ are the maximum values of charging and discharging states.
+\begin{equation}
+  \label{Contrs4}
+  \begin{aligned}
+    \sum_{t=1}^T \mu_{dis}(t) + \mu_{ch}(t) \leq N_{cycle}
+  \end{aligned}
+\end{equation}
+Equation (\ref{Contrs4}) limits the number of full cycles per day ($N_{cycle}$).
+
+
+\subsubsection{HVAC}
+
+\subsubsection{Shiftable load}
+
+\subsubsection{Interruptible load}
+
+\subsubsection{Price-based demand response programs}
+The general form of price-based demand response programs is formulated as a linear objective model as follows:
+\begin{equation}
+  \label{PriceDR}
+  \begin{aligned}
+    \max_{P} B(P; \lambda) = &\lambda^T P = \sum_{t=1}^T \lambda_t P_t \\
+    \text{where }  P \in \Phi \\
+  \end{aligned}
+\end{equation}
+
+\subsection{Electricity price prediction model}
+Above day-ahead price-based scheduling model is based on the prediction of day-ahead electricity prices. This part focus on the price prediction model formulation. Its general form is as follows:
+\begin{equation}
+  \label{Prediction}
+  \begin{aligned}
+    \hat{\lambda} = f(x)
+  \end{aligned}
+\end{equation}
+where $\hat{\lambda}$ is the prediction electricity prices and $x$ the input features; $f(\cdot)$ denotes the prediction model. From input raw datasets to output predicted prices, the whole process is composed of four procedures: i) data pre-processing, ii) feature engineering, iii) model selection, iv) training procedures, v) prediction target.
+
+\subsubsection{Data pre-processing}
+Data pre-processing transforms raw datasets into model's input and output datasets, including filling missing values,  clearing outliers, and normalizing the dataset. 
+
+\subsubsection{Feature engineering}
+Feature engineering selects and formulates the feature vectors from the processed dataset for inputting the prediction model. The electricity prices is usually influence by historical load and prices, future load and temperature, and some calendar factors including weekday/weekend, holiday effects, and day of the year. For more features input, the squares of future load and temperature are formulated and added into the feature vector.
+
+\subsubsection{Model selection}
+Prediction problem is formulated as a regression problem, which maps the input feature vectors into the output prediction values. A lot of regression models are applied in the smart grid for electricity prices, from conventional linear regression in statistical area to burgeoning neural networks in deep learning area. These models feature various strengthens and data input. 
+
+In this work, we focus on comparing two kinds of model: i) the linear regression model in Equation (\ref{Linear}); ii) the ResNet model in Equation (\ref{ResNet}). 
+\begin{equation}
+  \label{Linear}
+  \begin{aligned}
+    \hat{\lambda} = f(x; \theta) = \theta_x^{lr} x + \theta_b^{lr} \\ 
+  \end{aligned}
+\end{equation}
+
+\begin{equation}
+  \label{ResNet}
+  \begin{aligned}
+    & y_{l+1} = \sigma (\theta_y^{nn} y_l + \theta_x^{nn} x_l + \theta_b^{nn}) \quad l = 1, ..., N \\
+    & \hat{\lambda} = y_{N} \\
+  \end{aligned}
+\end{equation}
+
+\subsubsection{Training procedures}
+Training prediction model for better generalization follows these basic procedures: i) A subset of full processed data is selected as testing dataset randomly; ii) the remaining is further split into training and validation set randomly; iii) then we train the prediction model on the training set, evaluate its accuracy on validation set, and tune models' hyperparameters for high accuracy; iv) finally we test the trained model on the testing set for model evaluation and comparison. 
+
+\subsubsection{Prediction target}
+The target of training prediction model is to minimize the distance between predicted prices and actual prices. The distance is usually described by loss function as shown in definition 1.
+
+\begin{definition}[MSE of Prediction]
+  The mean square error (MSE) of prediction between the predicted prices and actual prices is defined as:  
+\end{definition}
+\begin{equation}
+  \label{MSE}
+  \begin{aligned}
+    MSE(\hat{\lambda}, \lambda) &= \frac{1}{T} ||\hat{\lambda} - \lambda ||^2_2 = \frac{1}{T} \sum_{t=1}^T(\hat{\lambda}_t - \lambda_t)^2 \\
+    \text{s.t. } \hat{\lambda} &= f(x) \\
+  \end{aligned}
+\end{equation}
+
+\begin{theorem}[Gradients of MSE to predicted prices]
+  The mean square error (MSE) of prediction between the predicted prices and actual prices is defined as:
+\end{theorem}
+\begin{equation}
+  \label{gradientsofMSE}
+  \begin{aligned}
+    MSE(\hat{\lambda}, \lambda) &= \frac{1}{T} ||\hat{\lambda} - \lambda ||^2_2 = \frac{1}{T} \sum_{t=1}^T(\hat{\lambda}_t - \lambda_t)^2 \\
+    \text{s.t. } \hat{\lambda} &= f(x) \\
+  \end{aligned}
+\end{equation}
+
+\begin{algorithm}[h]
+  \label{SGDPred}
+  \caption{Stochastic gradient decent algorithm training for prediction}
+  {\small{
+    \begin{algorithmic}[1]
+      \STATE \textbf{Input:} raw dataset;
+      \STATE \textbf{Data processing:}
+      \FOR{i in range}
+      \STATE Calculate gradients
+      \STATE Update gradients
+      \ENDFOR
+      \STATE \textbf{Output:} Final prediction model.
+    \end{algorithmic}
+  }}
+\end{algorithm}
+
+
+\subsection{Bridging prediction and optimization}
+Above formulation separates the predicting stage with the optimizing stage, and the connection between two stages is uni-direct where the upstream prediction model delivers its prices to downstream optimization model explicitly. In the same time, the prediction errors are also delivered to the downstream implicitly, which lead to the decision errors. Current works [TO DO: Ref.] focus on utilizing these prediction errors to train and evaluate the prediction model, while few considers downstream decision errors from upstream prediction errors. 
+
+This work focuses on utilizing downstream decision errors to improve the prediction model. The prediction model considers not only the prediction errors but the decision errors. As shown in Fig. \ref{transforming}, the downstream optimization model receives the predicted prices, calculates the decision errors, and back-propagates the decision errors to the prediction model. The concrete error calculation and back-propagation process are detailed in the following section.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5]{figs/SPOoutlines}
+  \caption{The transforming of uni-direct to bi-direct (Replacing this figures).}
+  \label{transforming}
+\end{figure}
+
+\section{Methodology}
+[TO DO: Overall framework in first].
+
+\subsection{General framework}
+The major drawback of above "Predict, then Optimize" uni-direct framework is that it does not delivery of prediction errors to optimization model. So this section first measures the decision loss from prediction errors in equation (\ref{PriceDR}) by the \textit{regret}, then derives derivatives of the regret to predicted prices, and finally back-propagates the gradients to update the parameters of prediction model as shown in Fig. \ref{SPO}.
+
+[TO DO: Consider generalizing the framework in formula]
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5]{figs/SPOoutlines}
+  \caption{The transforming of uni-direct to bi-direct (Replacing this figures).}
+  \label{SPO}
+\end{figure}
+
+\subsection{Decision loss}
+\textit{Regret} describes distance between the cost of decision under predicted values and that under actual values [TO DO: Ref.], which is widely utilized to measure the performance of online learning algorithms, e.g., multi-armed bandits, reinforcement learning, Thompson sampling.
+
+\subsubsection{Regret loss of PDR decision}
+In our price prediction for PDR, we measure the difference of the predicted decisions under the predicted prices and the optimal decisions under actual prices in definition 2.
+\begin{definition}[Regret of PDR decision]
+The regret of PDR decision is defined as the gap between the benefits under the predicted decisions and that under optimal decisions:  
+\end{definition}
+\begin{equation}
+  \label{RegretPDR}
+  \begin{aligned}
+    regret(\hat{\lambda}, \lambda) = & \lambda^T P^*(\lambda) - \lambda^T P^*(\hat{\lambda}) \\
+    \text{where } P^*(\lambda) = & P_{dis}^*(\lambda) - P_{ch}^*(\lambda)  \\
+  \end{aligned}
+\end{equation}
+where $\lambda^T P^*(\lambda)$, $\lambda^T P^*(\hat{\lambda})$ is the predicted decisions and the optimal decisions.
+
+\subsubsection{Discussion} [Discuss the inspiration of the system]
+
+
+
+\begin{theorem}[Gradients of the \textit{regret} to predicted prices]
+  The gradient of regret to prediction price is as follows:
+\end{theorem}
+
+\begin{equation}
+  \label{SPO+grad}
+  \begin{aligned}
+    \frac{\partial l_{SPO+}(\hat{c}, c)}{\partial \hat{c}} &= 2 (P^*(c) - P^*(2\hat{c} - c))\\ 
+  \end{aligned}
+\end{equation}
+
+\begin{proof}
+  The proof is as follows:
+\end{proof}
+\begin{equation}
+  \label{SPO+deduction}
+  \begin{aligned}
+    l_{SPO}(\hat{c}, c) &= \max_{P \in W^*(\hat{c})} \{ c^T P - \alpha \hat{c}^T P\} + \alpha z^*(\hat{c}) - z^*(c) \\
+    & \leq \inf_\alpha \{\max_{\omega \in W^*(\hat{c})} \{ c^T \omega - \alpha \hat{c}^T \omega\} + \alpha z^*(\hat{c}) \} - z^*(c) \\
+    & = \lim_{\alpha\rightarrow \infty} \{\max_{\omega \in S }\{ c^T \omega - \alpha \hat{c}^T \omega\} + \alpha z^*(\hat{c}) \} - z^*(c) \\
+  \end{aligned}
+\end{equation}
+
+\subsection{Back-propagating the loss}
+
+\begin{lemma}[Combined gradients of the \textit{regret} to predicted prices]
+  The gradient of regret to prediction price is as follows:
+\end{lemma}
+\begin{algorithm}
+  \label{SGDOpt}
+  \caption{Stochastic gradient decent algorithm training for Decision}
+  \begin{algorithmic}
+    \STATE Input features
+    \STATE output
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Discussion}
+
+
+\section{Experiments}
+\subsection{Dataset and model parameters}
+
+\subsubsection{Data preparing}
+
+\subsubsection{Model initializing}
+
+\subsection{Model comparison}
+
+
+
+\subsection{Loss comparison}
+
+\subsection{Decision comparison}
+
+
+\section{Conclusion}
+\subsection{Summary}
+
+\subsection{Future work}
+
+\section*{Trashes}
+This work formulates the electricity prices prediction for PDR under the Smart "Predict, then Optimize" framework \cite{Elmachtoub2020}, which combines the prediction model and optimization model. The general form of price-based demand response (PDR) is formulated as a mixed-integer linear programming (MILP) with the linear objective in equation (\ref{PriceDR}). When combined with the prediction model (\ref{Prediction}), the hybrid model is formulated in equation (\ref{TransPDR}).
+\begin{equation}
+  \label{TransPDR}
+  \begin{aligned}
+    \max_{P \in \Phi} \mathbb{E}_{ \lambda \sim \mathcal{D}_x} [\lambda^T P | x] = \mathbb{E}_{\lambda \sim \mathcal{D}_x} [\lambda | x]^T P
+  \end{aligned}
+\end{equation}
+where $\mathcal{D}_x$ is the conditional distribution of predicted price $\lambda$ under the input features $x$. And the $\mathbb{E}_{\lambda \sim \mathcal{D}_x} [\lambda^T | x]$ is the prediction electricity prices $\hat{\lambda}$.
+
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+
+
+
+\begin{thebibliography}{2}
+
+\bibitem{Donti2017}
+P. Donti, B. Amos, and J. Z. Kolter, “Task-based end-to-end model learning in stochastic optimization,” \emph{Advances in Neural Information Processing Systems}, 2017, pp. 5484–5494.
+
+\bibitem{Elmachtoub2020}
+A. N. Elmachtoub and P. Grigas, “Smart ‘Predict, then Optimize.’” 2020.
+
+\bibitem{Chitsaz2018}
+H. Chitsaz, P. Zamani-Dehkordi, H. Zareipour and P. P. Parikh, "Electricity Price Forecasting for Operational Scheduling of Behind-the-Meter Storage Systems," \emph{IEEE Transactions on Smart Grid}, vol. 9, no. 6, pp. 6612-6622, Nov. 2018.
+
+\bibitem{Chen2012}
+Z. Chen, L. Wu and Y. Fu, "Real-Time Price-Based Demand Response Management for Residential Appliances via Stochastic Optimization and Robust Optimization," \emph{IEEE Transactions on Smart Grid}, vol. 3, no. 4, pp. 1822-1831, Dec. 2012.
+
+\bibitem{Chen2020}
+X. Chen, E. Dall’Anese, C. Zhao and N. Li, "Aggregate Power Flexibility in Unbalanced Distribution Systems," \emph{IEEE Transactions on Smart Grid}, vol. 11, no. 1, pp. 258-269, Jan. 2020.
+
+\bibitem{Mandi2020}
+J. Mandi, E. Demirovic, P. J. Stuckey, and T. Guns, “Smart Predict-and-Optimize for Hard Combinatorial Optimization Problems”, \emph{AAAI}, vol. 34, no. 02, pp. 1603-1610, Apr. 2020
+
+\end{thebibliography}
+
+
+\end{document}
+
+
