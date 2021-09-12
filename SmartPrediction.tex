@@ -20,6 +20,7 @@
 \usepackage{array}
 \usepackage{algorithmic}
 \usepackage{algorithm}
+\usepackage{tabularx}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
@@ -28,7 +29,7 @@
 
 \begin{document}
 
-\title{Smart prediction for demand response}
+\title{Smart Electricity Prices Prediction for Price-taker Demand Response Programs}
 
 \author{Linwei Sang
 \thanks{Work in progress}
@@ -53,32 +54,44 @@ Price prediction, optimization model
 
 \subsection{Motivation}
 
+Conventional power system scheduling and optimization follow the scheme of "Predict, then Optimize" framework, where the connection between prediction model and optimization model is uni-direct. The predicting methods of current researches seldom considers the decision errors in training process. However, the minimizing of prediction errors is not equivalent to minimizing decision errors. So it is essential to consider both the prediction errors and decision errors in training the parameters of prediction model.
+
 \subsection{Contributions}
+The main contributions of this work can be summarized as:
+
+1) (framework)
+
+2) (surrogate gradients)
+
+3) (combined gradients, its implementation skills)
+
+4) (Experiments)
 
 \subsection{Related researches}
 
-\section{Problem Formulation}
-Overall formulation.
 
-\subsection{Price-based demand response programs}
+\section{Problem Formulation}
+Overall formulation (price taker).
+
+\subsection{Price-based demand response programs (Virtual power plant)}
 (Refer to \cite{Chitsaz2018})
 \subsubsection{Battery storage formulation}
 The battery energy storage system (BESS) usually works at charging state when electricity price is low and at discharging state when electricity prices high. The operation of storage system usually follows the electricity price information to maximize the benefits from markets as:
 \begin{equation}
   \label{ESbigM}
   \begin{aligned}
-    \max_{P} B(P; \lambda) = &\lambda^T P = \sum_{t=1}^T \lambda_t P_t \\
-    \text{where }  P \in \Phi
+    \max_{P} c(P; \lambda) = &\lambda^T P = \sum_{t=1}^T \lambda_t P_t \\
+    \text{where }  P \in \Phi_{BESS}
   \end{aligned}
 \end{equation}
-where its objective is to maximize the net energy benefits by optimizing its operating power $P$ (MW) under market electricity prices $\lambda$ (\$/MWh), denoted by $B(P; \lambda)$; the feasible region ($\Phi$) of decision variables $P$ is subject to a set of operation and technical constraints as follows:
+where its objective is to maximize the net energy benefits by optimizing its operating power $P$ (MW) under market electricity prices $\lambda$ (\$/MWh), denoted by $c(P; \lambda)$; the feasible region ($\Phi_{BESS}$) of decision variables $P$ is subject to a set of operation and technical constraints as follows:
 \begin{equation}
   \label{Contrs1}
   \begin{aligned}
     P = P_{dis} - P_{ch} \\
   \end{aligned}
 \end{equation}
-Equation (\ref{Contrs1}) illustrates the operating power $P$ of BESS is composed of charging and discharging parts; $P_dis$ denotes the charging of BESS from grid, and $P_ch$ denotes the discharging of BESS to grid.
+Equation (\ref{Contrs1}) illustrates the operating power $P$ of BESS is composed of charging and discharging parts; $P_{dis}$ denotes the charging of BESS from grid, and $P_{ch}$ denotes the discharging of BESS to grid.
 \begin{equation}
   \label{Contrs2}
   \begin{aligned}
@@ -107,18 +120,35 @@ Equation (\ref{Contrs3}) prevents the simultaneously charging and discharging of
 Equation (\ref{Contrs4}) limits the number of full cycles per day ($N_{cycle}$).
 
 
-\subsubsection{HVAC}
+\subsubsection{Price taker distributed generators}
 
 \subsubsection{Shiftable load}
+Shiftable load can schedule their energy demand from peak hours to off-peak hours when prices are low in the scheduling horizon. The operation of shiftable load can follow the day-ahead prices information to minimize its cost as: 
+\begin{equation}
+  \label{SLobj}
+  \begin{aligned}
+    \max_{P} c(P; \lambda) = - &\lambda^T P = \sum_{t=1}^T - \lambda_t P_t \\
+    \text{where }  P \in \Phi_{SL} \\
+  \end{aligned}
+\end{equation}
 
-\subsubsection{Interruptible load}
+The feasible region $\Phi_{SL}$ of shiftable load is decided by devices' operation interval $[T_{n, start}, T_{n, end}]$ and their required operation time in Equation (\ref{SLconstr1}).
+\begin{equation}
+  \label{SLconstr1}
+  \begin{aligned}
+    P_t &= \mathbb{I} _{n,h} p_{n, t} \\
+    T_{n, start} &\leq T_{n, \omega} \leq |T_{n, end}-T_{n, last}| \\
+    T_{n, last} &\leq T_{n, end} - T_{n, start}
+  \end{aligned}
+\end{equation}
 
-\subsubsection{Price-based demand response programs}
+
+\subsubsection{Price-based demand response programs [TO DO: summarize the general form of PDR and give some notations]}
 The general form of price-based demand response programs is formulated as a linear objective model as follows:
 \begin{equation}
   \label{PriceDR}
   \begin{aligned}
-    \max_{P} B(P; \lambda) = &\lambda^T P = \sum_{t=1}^T \lambda_t P_t \\
+    \max_{P} c(P; \lambda) = &\lambda^T P = \sum_{t=1}^T \lambda_t P_t \\
     \text{where }  P \in \Phi \\
   \end{aligned}
 \end{equation}
@@ -140,7 +170,7 @@ Data pre-processing transforms raw datasets into model's input and output datase
 Feature engineering selects and formulates the feature vectors from the processed dataset for inputting the prediction model. The electricity prices is usually influence by historical load and prices, future load and temperature, and some calendar factors including weekday/weekend, holiday effects, and day of the year. For more features input, the squares of future load and temperature are formulated and added into the feature vector.
 
 \subsubsection{Model selection}
-Prediction problem is formulated as a regression problem, which maps the input feature vectors into the output prediction values. A lot of regression models are applied in the smart grid for electricity prices, from conventional linear regression in statistical area to burgeoning neural networks in deep learning area. These models feature various strengthens and data input. 
+Prediction problem is formulated as a regression problem, which maps the input feature vectors into the output continuous prediction values. A lot of regression models are applied in the smart grid for electricity prices, from conventional linear regression in statistical area to burgeoning neural networks in deep learning area. These models feature various strengthens and data input. 
 
 In this work, we focus on comparing two kinds of model: i) the linear regression model in Equation (\ref{Linear}); ii) the ResNet model in Equation (\ref{ResNet}). 
 \begin{equation}
@@ -153,8 +183,8 @@ In this work, we focus on comparing two kinds of model: i) the linear regression
 \begin{equation}
   \label{ResNet}
   \begin{aligned}
-    & y_{l+1} = \sigma (\theta_y^{nn} y_l + \theta_x^{nn} x_l + \theta_b^{nn}) \quad l = 1, ..., N \\
-    & \hat{\lambda} = y_{N} \\
+     y_{l+1} &= \sigma (\theta_y^{nn} y_l + \theta_x^{nn} x_l + \theta_b^{nn}) \quad l = 1, ..., N \\
+     \hat{\lambda} &= y_{N} \\
   \end{aligned}
 \end{equation}
 
@@ -164,44 +194,57 @@ Training prediction model for better generalization follows these basic procedur
 \subsubsection{Prediction target}
 The target of training prediction model is to minimize the distance between predicted prices and actual prices. The distance is usually described by loss function as shown in definition 1.
 
-\begin{definition}[MSE of Prediction]
+\begin{definition}[MSE loss of Prediction]
   The mean square error (MSE) of prediction between the predicted prices and actual prices is defined as:  
 \end{definition}
 \begin{equation}
   \label{MSE}
   \begin{aligned}
-    MSE(\hat{\lambda}, \lambda) &= \frac{1}{T} ||\hat{\lambda} - \lambda ||^2_2 = \frac{1}{T} \sum_{t=1}^T(\hat{\lambda}_t - \lambda_t)^2 \\
-    \text{s.t. } \hat{\lambda} &= f(x) \\
+    L^{MSE}(\hat{\lambda}, \lambda) &= \frac{1}{T} \frac{||\hat{\lambda} - \lambda ||^2_2}{2}  = \frac{1}{T} \sum_{t=1}^T \frac{(\hat{\lambda}_t - \lambda_t)^2}{2} \\
   \end{aligned}
 \end{equation}
 
-\begin{theorem}[Gradients of MSE to predicted prices]
+Then the target of prediction model is formulated in Equation (\ref{Targetofprediction}).
+\begin{equation}
+  \label{Targetofprediction}
+  \begin{aligned}
+    \min_{\theta} &L^{MSE}(\hat{\lambda}, \lambda) \\
+    \text{s.t. } &\hat{\lambda} = f(x; \theta) \\
+  \end{aligned}
+\end{equation}
+
+\begin{lemma}[Gradients of MSE to predicted prices]
   The mean square error (MSE) of prediction between the predicted prices and actual prices is defined as:
-\end{theorem}
+\end{lemma}
 \begin{equation}
   \label{gradientsofMSE}
   \begin{aligned}
-    MSE(\hat{\lambda}, \lambda) &= \frac{1}{T} ||\hat{\lambda} - \lambda ||^2_2 = \frac{1}{T} \sum_{t=1}^T(\hat{\lambda}_t - \lambda_t)^2 \\
-    \text{s.t. } \hat{\lambda} &= f(x) \\
+    \frac{\partial L^{MSE}(\hat{\lambda}, \lambda)}{\partial \hat{\lambda}} &= \frac{1}{T} \sum_{t=1}^T (\hat{\lambda}_t - \lambda_t) \\
+    \text{s.t. } \hat{\lambda} &= f(x; \theta) \\
   \end{aligned}
 \end{equation}
 
-\begin{algorithm}[h]
+\begin{algorithm}[!t]
   \label{SGDPred}
-  \caption{Stochastic gradient decent algorithm training for prediction}
-  {\small{
+  \caption{Stochastic gradient decent algorithm for prediction}
+  {{
     \begin{algorithmic}[1]
-      \STATE \textbf{Input:} raw dataset;
-      \STATE \textbf{Data processing:}
-      \FOR{i in range}
-      \STATE Calculate gradients
-      \STATE Update gradients
+      \STATE \textbf{Input:} Raw dataset, prediction model; hyperparameter: batch size N, learning rate $\alpha$;
+      \STATE \textbf{Data processing:} Data pre-processing, featuring engineering, and train-validation-test dataset dividing; 
+      \WHILE {Not converge}
+      \STATE Sampling $N$ data point; 
+      \FOR{ $i$ = 1, ... $N$}
+      \STATE Predict prices: $\hat{\lambda} = f(x)$
+      \STATE Calculate gradients of MSE according to Equation (\ref{gradientsofMSE}): $$\frac{\partial L^{MSE}(\hat{\lambda}) }{\partial \hat{\lambda}} \leftarrow  \frac{1}{T} (\hat{\lambda}_i - \lambda_i)$$
+      \STATE Accumulate gradients of MSE: $$ \frac{\partial L^{MSE} }{\partial \hat{\lambda}} \leftarrow \frac{\partial L^{MSE}(\hat{\lambda}) }{\partial \hat{\lambda}} + \frac{\partial L_i^{MSE}(\hat{\lambda})}{\partial \hat{\lambda}}$$
       \ENDFOR
+      \STATE Update model parameters: $$\theta \leftarrow \theta - \alpha \frac{\partial L^{MSE}}{\partial \hat{\lambda}} \frac{\hat{\lambda}}{\theta}; \frac{\partial L^{MSE}}{\partial \hat{\lambda}} \leftarrow 0$$
+      \STATE Evaluate the model in validation dataset;
+      \ENDWHILE
       \STATE \textbf{Output:} Final prediction model.
     \end{algorithmic}
   }}
 \end{algorithm}
-
 
 \subsection{Bridging prediction and optimization}
 Above formulation separates the predicting stage with the optimizing stage, and the connection between two stages is uni-direct where the upstream prediction model delivers its prices to downstream optimization model explicitly. In the same time, the prediction errors are also delivered to the downstream implicitly, which lead to the decision errors. Current works [TO DO: Ref.] focus on utilizing these prediction errors to train and evaluate the prediction model, while few considers downstream decision errors from upstream prediction errors. 
@@ -219,101 +262,382 @@ This work focuses on utilizing downstream decision errors to improve the predict
 [TO DO: Overall framework in first].
 
 \subsection{General framework}
-The major drawback of above "Predict, then Optimize" uni-direct framework is that it does not delivery of prediction errors to optimization model. So this section first measures the decision loss from prediction errors in equation (\ref{PriceDR}) by the \textit{regret}, then derives derivatives of the regret to predicted prices, and finally back-propagates the gradients to update the parameters of prediction model as shown in Fig. \ref{SPO}.
+The major drawback of above "Predict, then Optimize" uni-direct framework is that it does not delivery of prediction errors to optimization model. So this section first measures the decision loss from prediction errors in Equation (\ref{PriceDR}) by the \textit{regret}, then derives derivatives of the regret to predicted prices, and finally back-propagates the gradients to update the parameters of prediction model as shown in Fig. \ref{SPO}.
 
 [TO DO: Consider generalizing the framework in formula]
 
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.5]{figs/SPOoutlines}
-  \caption{The transforming of uni-direct to bi-direct (Replacing this figures).}
+  \caption{Overall framework (Replacing this figures).}
   \label{SPO}
 \end{figure}
 
-\subsection{Decision loss}
-\textit{Regret} describes distance between the cost of decision under predicted values and that under actual values [TO DO: Ref.], which is widely utilized to measure the performance of online learning algorithms, e.g., multi-armed bandits, reinforcement learning, Thompson sampling.
+\subsection{Regret of decision}
+In this paper, \textit{regret} describes distance between the cost of decision under predicted values and that under actual values [TO DO: Ref.], which is widely utilized to measure the performance of online learning algorithms, e.g., multi-armed bandits, reinforcement learning, Thompson sampling.
 
 \subsubsection{Regret loss of PDR decision}
-In our price prediction for PDR, we measure the difference of the predicted decisions under the predicted prices and the optimal decisions under actual prices in definition 2.
+In the proposed electricity prices prediction for PDR, we measure the difference of the predicted decisions under the predicted prices and the optimal decisions under actual prices in definition 2. Low regret loss means asymptotically optimal decisions.
 \begin{definition}[Regret of PDR decision]
 The regret of PDR decision is defined as the gap between the benefits under the predicted decisions and that under optimal decisions:  
 \end{definition}
 \begin{equation}
-  \label{RegretPDR}
+  \label{gradientsofregret}
   \begin{aligned}
     regret(\hat{\lambda}, \lambda) = & \lambda^T P^*(\lambda) - \lambda^T P^*(\hat{\lambda}) \\
     \text{where } P^*(\lambda) = & P_{dis}^*(\lambda) - P_{ch}^*(\lambda)  \\
   \end{aligned}
 \end{equation}
-where $\lambda^T P^*(\lambda)$, $\lambda^T P^*(\hat{\lambda})$ is the predicted decisions and the optimal decisions.
+where $ P^*(\lambda)$, $ P^*(\hat{\lambda})$ denote the predicted decisions and the optimal decisions; $\lambda$ denotes the actual electricity prices in the market.
 
-\subsubsection{Discussion} [Discuss the inspiration of the system]
+\subsubsection{Discussion}
+Due to the MILP formulation of PDR, its feasible region can be described as a collection of polyhedrons, so its optimal decision probably lies in the extreme points of some polyhedron. Taking two-dimension polyhedrons as an example, Fig. \ref{Feasible} shows two different predicted electricity prices with the same predicted errors may lead to different decisions and corresponding different \textit{regrets}. The decision $P(\lambda)$ under $\lambda$ is same as $P(\hat{\lambda}_1)$ under $\hat{\lambda}_1$, while different from $P(\hat{\lambda}_2)$ under $\hat{\lambda}_2$. This also applies to \textit{regret} of different predicted prices. 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.4]{figs/feasible_region}
+  \caption{Geometric illustration of different predicted electricity prices with same predicted error but different \textit{regret} losses.}
+  \label{Feasible}
+\end{figure}
+
+Above example illustrates the \textit{regret} loss of prediction focuses on the impact of prediction errors on decisions. The prediction model should utilize \textit{regret} losses to update its parameters, but the gradients of \textit{regret} loss to predicted prices is hard to calculate directly.
+
+\subsection{Tractable transformation of regret}
+
+However, the \textit{regret} with respect to predicted prices $\hat{\lambda}$ is discontinuous and non-tractable. Based on Ref. \cite{Elmachtoub2020}, we formulate the tractable loss function $L^{regret}$ of the \textit{regret} by combining MSE loss.
+\begin{equation}
+  \label{deductionofregret0}
+  \begin{aligned}
+    regret(\hat{\lambda}, \lambda) &= \lambda P^*(\lambda) - \alpha \hat{\lambda}P^*(\hat{\lambda}) + [\alpha \hat{\lambda}P^*(\hat{\lambda}) - \lambda P^*(\hat{\lambda})]\\
+    &= [\alpha \hat{\lambda}P^*(\hat{\lambda}) - \lambda P^*(\hat{\lambda})] + c^*(\lambda) - \alpha c^*(\hat{\lambda})\\
+  \end{aligned}
+\end{equation}
+
+\begin{equation}
+  \label{deductionofregret1}
+  \begin{aligned}
+    regret(\hat{\lambda}, \lambda) \leq \inf_{\alpha} \Big\{ 
+      \max_{P \in \Phi} \{ 
+        \alpha \hat{\lambda}P - \lambda P) \} 
+        - \alpha c^*(\hat{\lambda}) \Big\} 
+        + c^*(\lambda) \\
+  \end{aligned}
+\end{equation}
+Inequation (\ref{deductionofregret1}) is actually a dual form of an equation, and the optimal value $\alpha$ of left-hand formula tends to $\infty$. As $\alpha$ is getting larger, the term of $\lambda P$ tends to be negligible and the optimal $P$ of inner maximization problem tends to be $P(\hat{\lambda})$, which recovers Equation (\ref{deductionofregret0}). So the dual form of Equation (\ref{deductionofregret0}) is established.
+\begin{equation}
+  \label{lossofregret1}
+  \begin{aligned}
+    regret(\hat{\lambda}, \lambda) = & \lim_{\alpha \to \infty } \Big \{ \max_{P \in \Phi} \{\lambda^T P + \alpha \hat{\lambda}^T P \} - \alpha c^*(\hat{\lambda}) \Big\} \\
+    & + c^*(\lambda)
+  \end{aligned}
+\end{equation}
+
+When combined with previous prediction model formulation (\ref{Prediction}), the loss reducing target function of the prediction model can be further extended in Equation (\ref{SPO+deduction}).
+\begin{figure*}[!t]
+  \begin{equation}
+    \label{SPO+deduction}
+    \begin{aligned}
+      &\min_{\theta} \frac{1}{n} \sum_{i=1}^n \lim_{\alpha_i \to \infty } \Big\{ \max_{P \in \Phi} \{\lambda^T P - \alpha_i f(x_i)^T P \} - \alpha_i c^*(\hat{\lambda}) \Big\}  + c^*(\lambda) \\
+      = & \min_{\theta} \frac{1}{n} \sum_{i=1}^n \lim_{\alpha_i \to \infty } \Big\{ \max_{P \in \Phi} \{\lambda^T P - \alpha_i f(x_i)^T P \} - \alpha_i f(x_i)^T P^*(\alpha f(x_i))  + c^*(\lambda) \Big\} \\
+      = & \min_{\theta}  \lim_{\alpha \to \infty } \frac{1}{n} \sum_{i=1}^n \Big\{ \max_{P \in \Phi} \{\lambda^T P - \alpha f(x_i)^T P \} - \alpha f(x_i)^T P^*(\alpha f(x))  + c^*(\lambda) \Big\} \\
+      \leq & \min_{\theta} \frac{1}{n} \sum_{i=1}^n   \max_{P \in \Phi} \Big\{\lambda^T P - 2 f(x_i)^T P \Big\} - 2 f(x_i)^T P^*(2 f(x_i)) + c^*(\lambda)\\
+      \leq & \min_{\theta} \frac{1}{n} \sum_{i=1}^n   \max_{P \in \Phi} \Big\{\lambda^T P - 2 f(x_i)^T P \Big\} - 2 f(x_i)^T P^*(\lambda) + c^*(\lambda) \\ 
+    \end{aligned}
+  \end{equation}
+\end{figure*}
+The first equality of above derives from the fact $P^*(\alpha_i f(x_i)) = P^*(f(x_i))$ for any $\alpha_i \geq 0$, which is proved in appendix. The second equality derives from the intuition that as all $\alpha_i$ tends to be $\infty$, they tend to be the same and can be replaced by a single variable $\alpha$. The first inequality derives from setting $\alpha$ as 2 to get an estimate of upper bound in particular. And the second inequality relaxes optimal value of $P^*(2 f(x_i))$ under $c(\hat{\lambda})$  by a feasible decision value $P^*(\lambda)$. The detailed illustrations are attached in appendix.
+
+\begin{definition}[Surrogate regret loss of PDR decision]
+Given predicted prices $\hat{\lambda}$ and actual prices $\lambda$, the surrogate regret loss of PDR decision is defined as follows:
+\end{definition}
+
+\begin{equation}
+  \label{lossofregret2}
+  \begin{aligned}
+    L^{regret}(\hat{\lambda}, \lambda) &= \max_{P\in \Phi} \{ \lambda^T P - 2 \hat{\lambda}^T P \} - 2 \hat{\lambda} P^*(\lambda) + c^*(\lambda)  \\
+    &= (\lambda - 2 \hat{\lambda})^T P^*(\lambda - 2 \hat{\lambda}) - 2 \hat{\lambda} P^*(\lambda) + c^*(\lambda) \\
+  \end{aligned}
+\end{equation}
+
+\begin{remark}[Properties of surrogate \textit{regret} loss]
+  Given predicted prices and actual prices, proposed surrogate regret loss holds the following properties:
+
+  1. $regret(\hat{\lambda}, \lambda) \leq L^{regret}(\hat{\lambda}, \lambda)$;
+
+  2. $L^{regret}(\hat{\lambda}, \lambda)$ is a concave function of predicted electricity prices $\hat{\lambda}$.
+\end{remark}
 
 
-
-\begin{theorem}[Gradients of the \textit{regret} to predicted prices]
-  The gradient of regret to prediction price is as follows:
-\end{theorem}
-
+\begin{lemma}[Gradients of the surrogate \textit{regret} loss to predicted prices]
+Based on the definition of surrogate regret of PDR decision, the gradient of regret to prediction price  is derived for later model training:
+\end{lemma}
 \begin{equation}
   \label{SPO+grad}
   \begin{aligned}
-    \frac{\partial l_{SPO+}(\hat{c}, c)}{\partial \hat{c}} &= 2 (P^*(c) - P^*(2\hat{c} - c))\\ 
+    \frac{\partial L^{regret}(\hat{\lambda}, \lambda)}{\partial \hat{\lambda}} &= - 2 (P^*(\lambda) + P^*( \lambda - 2\hat{\lambda}))\\ 
   \end{aligned}
 \end{equation}
 
 \begin{proof}
-  The proof is as follows:
+  The proof of Equation (\ref{SPO+grad}) is as follows [TO do: Refer to some perturbation optimization analysis]:
 \end{proof}
-\begin{equation}
-  \label{SPO+deduction}
+\begin{equation*}
+  \label{SPO+proof}
   \begin{aligned}
-    l_{SPO}(\hat{c}, c) &= \max_{P \in W^*(\hat{c})} \{ c^T P - \alpha \hat{c}^T P\} + \alpha z^*(\hat{c}) - z^*(c) \\
-    & \leq \inf_\alpha \{\max_{\omega \in W^*(\hat{c})} \{ c^T \omega - \alpha \hat{c}^T \omega\} + \alpha z^*(\hat{c}) \} - z^*(c) \\
-    & = \lim_{\alpha\rightarrow \infty} \{\max_{\omega \in S }\{ c^T \omega - \alpha \hat{c}^T \omega\} + \alpha z^*(\hat{c}) \} - z^*(c) \\
+    \frac{\partial L^{regret}}{\partial \hat{\lambda}} &= \frac{\partial \max_{P\in \Phi} \{ \lambda^T P - 2 \hat{\lambda}^T P \} - 2 \hat{\lambda} P^*(\lambda) + c^*(\lambda)}{\partial \hat{\lambda}} \\ 
+    &= \frac{\partial \max_{P\in \Phi} \{ \lambda^T P - 2 \hat{\lambda}^T P \}}{\partial \hat{\lambda}} - 2 P^*(\lambda) \\
+    &= -2 P^*(\lambda - 2 \hat{\lambda}) - 2 P^*(\lambda)
+  \end{aligned}
+\end{equation*}
+
+\subsection{Combined SGD method for PDR decision}
+MSE and surrogate regret focus on the prediction errors and decision errors individually, which views prediction loss from the perspectives of prediction model and decision model. But they can be combined for better trade-off, and hence this paper proposes a combined stochastic gradient decent (SGD) method for training prediction model by utilizing the combined loss function (\ref{SPO+comb+loss}) and its derivatives (\ref{SPO+comb}).
+
+\begin{definition}[Combined loss function]
+  The combined loss is the weighted sum of MSE (\ref{MSE}) and surrogate \textit{regret} (\ref{lossofregret2}).
+\end{definition}
+
+\begin{equation}
+  \label{SPO+comb+loss}
+  \begin{aligned}
+    L^{comb} &= L^{regret} +\epsilon L^{MSE} \\
+    &= (\lambda - 2 \hat{\lambda})^T P^*(\lambda - 2 \hat{\lambda}) - 2 \hat{\lambda} P^*(\lambda) + c^*(\lambda) \\
+    &+ \epsilon \frac{1}{T} \frac{||\hat{\lambda} - \lambda ||^2_2}{2}
+  \end{aligned}
+\end{equation}
+where $\epsilon$ is a weighted coefficient on MSE, which implies the emphasis extent of prediction errors.
+
+\begin{lemma}[Gradients of the combined \textit{regret} and MSE to predicted prices]
+  The gradients of  combined \textit{regret} and MSE to predicted prices are derived from Equation (\ref{gradientsofMSE}) and (\ref{SPO+grad}):
+\end{lemma}
+
+\begin{equation}
+  \label{SPO+comb}
+  \begin{aligned}
+    \frac{\partial L^{comb}}{\partial \hat{\lambda}} & = \frac{\partial L^{regret}}{\partial \hat{\lambda}}+\epsilon \frac{\partial L^{MSE}}{\partial \hat{\lambda}}
   \end{aligned}
 \end{equation}
 
-\subsection{Back-propagating the loss}
+After deriving the combined gradients, this paper proposes the combined SGD method for PDR decision to achieve the trade-off between the prediction errors and decision errors. It should be noted that proposed method can apply for both simple linear prediction models and complex deep learning models.
 
-\begin{lemma}[Combined gradients of the \textit{regret} to predicted prices]
-  The gradient of regret to prediction price is as follows:
-\end{lemma}
-\begin{algorithm}
-  \label{SGDOpt}
-  \caption{Stochastic gradient decent algorithm training for Decision}
-  \begin{algorithmic}
-    \STATE Input features
-    \STATE output
-  \end{algorithmic}
+\begin{algorithm}[!t]
+  \label{CombSGD}
+  \caption{Combined SGD for PDR decision}
+  {\small{
+    \begin{algorithmic}[1]
+      \STATE \textbf{Input:} Raw dataset, prediction model; hyperparameter: batch size N, learning rate $\alpha$;
+      \STATE \textbf{Data processing:} Data pre-processing, featuring engineering, and train-validation-test dataset dividing; 
+      \STATE \textbf{Training:}
+      \WHILE {Not converge}
+      \STATE Sampling $N$ data point; 
+      \FOR{ $i$ = 1, ... $N$}
+      \STATE Predict prices: $\hat{\lambda} = f(x)$
+      \STATE Calculate gradients of MSE according to Equation (\ref{gradientsofMSE})
+      : $$\frac{\partial L^{MSE}(\hat{\lambda}) }{\partial \hat{\lambda}} \leftarrow  \frac{1}{T} (\hat{\lambda}_i - \lambda_i)$$
+      \STATE Calculate gradients of surrogate \textit{regret} according to Equation (\ref{gradientsofregret}): $$\frac{\partial L^{regret}(\hat{\lambda}) }{\partial \hat{\lambda}} \leftarrow  \lambda^T P^*(\lambda) - \lambda^T P^*(\hat{\lambda})$$
+      \STATE Accumulate gradients of combined gradient: $$ \frac{\partial L^{Comb} }{\partial \hat{\lambda}} \leftarrow \frac{\partial L^{MSE}}{\partial \hat{\lambda}} + (\frac{\partial L_i^{regret}}{\partial \hat{\lambda}}+\epsilon \frac{\partial L_i^{MSE}}{\partial \hat{\lambda}})$$
+      \ENDFOR
+      \STATE Update model parameters in batches: $$\theta \leftarrow \theta - \alpha \frac{\partial L^{Comb}}{\partial \hat{\lambda}} \frac{\hat{\lambda}}{\theta}; \frac{\partial L^{Comb}}{\partial \hat{\lambda}} \leftarrow 0$$
+      \STATE Evaluate the model in validation dataset;
+      \ENDWHILE
+      \STATE \textbf{Output:} Final prediction model.
+    \end{algorithmic}
+  }}
 \end{algorithm}
+
+As shown in algorithm 2, firstly, the data processing conducts 
+pre-processing, feature engineering, and dataset partition  as mentioned in section II-B; secondly, training processing samples mini-batch datasets from the whole dataset, calculates the gradients of MSE and surrogate \textit{regret}, accumulates each points' gradients in one mini-batch, and updates the parameters of prediction model in batches. The way of mini-batch updating reduces the updating gradients' number for acceleration. After each batch updating, the model in validation dataset is evaluated. In actual implementation with Pytorch package featuring autograd tools, the combined loss back-propagating process is divided into three processes: 1) calculate surrogate \textit{regret} gradients, back-propagates newly gradients to model parameters, and retain the gradients; 2) calculate weighted MSE gradients, back-propagates the  gradients again, and accumulate the above two gradients with respect to corresponding parameters. Finally, the trained model is applied for online electricity prices prediction.
 
 \subsection{Discussion}
 
-
 \section{Experiments}
-\subsection{Dataset and model parameters}
+To verify the effectiveness of proposed gradients and methods, this paper utilizes six-year hourly real electricity prices and related temperature, load information from PJM for numerical experiments[To do: Ref.]. All the proposed methods are implemented by python with Pytorch framework for prediction models and Cvxpy framework for optimization models, which are trained on a MacBook Pro laptop with RAM 16 GB, CPU Intel Core I7 (2.6GHz).
 
+\subsection{Datasets and models formulation}
+This work first pre-processes the raw electricity-related data to formulate the prediction dataset, then selects and constructs the input features and output prices, trains different day-ahead prediction models, and finally evaluates different models and losses.
 \subsubsection{Data preparing}
+We construct the input feature from three parts: 1) the past day before the prediction day: the hourly load, temperature, and temperature's square in the past day; 2) the prediction day: the prediction temperature and its square in the prediction day; 3) calendar effects: the indicators of weekday, holiday, and day of the year as shown in Table I.
+\begin{table}[h]
+  \centering
+  \label{input_features}
+  \caption{The input features of price prediction models.}
+  \begin{tabular}{cc}
+    \hline
+    Features' type & Components \\
+    \hline
+    Past day &  load, temp, (temp)$^2$ \\
+    Prediction day & temp, (temp)$^2$ \\
+    Calendar effects & $\mathbb{I}(weekday)$, $\mathbb{I}(holiday)$, \\ &
+    $\sin(2 \pi \times DOY)$, $\sin(2 \pi \times DOY)$ \\
+    \hline
+  \end{tabular}
+  \vspace{1ex}
+
+  {\raggedright It should be noted that temp is the abbreviation of temperature, $\mathbb{I}(\cdot)$ refers to the indicator function, DOY is the abbreviation of Day of the Year.\par}
+\end{table}
+
+Then all the input features are standardized considering mean and standard variance to formulate the final feature vectors.
+
+As the electricity prices fluctuate a lot, the output of the prediction model is set to be the $\log$ of electricity prices, which is assumed to follow log-normal distribution \cite{Donti2017}.   After feature engineering, the 20\% of all above pre-processed datasets are split randomly into test set for model evaluation; the 20\% of the rest are further split randomly into validation set for training early stop, and the final rest is the training set for training the parameters of the model. 
 
 \subsubsection{Model initializing}
 
-\subsection{Model comparison}
+The structure of linear model and ResNet model is shown in Fig. \ref{structure}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5]{figs/SPOoutlines}
+  \caption{The structure of the linear model and ResNet model.}
+  \label{structure}
+\end{figure}
+
+\subsubsection{Hyper-parameter setting}
+The hyperparameter setting also has two parts, ResNet model and PDR model's hyper-parameters shown in Table II.
+
+\begin{table}[!t]
+  \centering
+  \label{hyperparameters}
+  \caption{The input features of price prediction models.}
+  \begin{tabular}{ccc}
+    \hline
+    Models & Hyper-parameters & Values \\
+    \hline
+    ResNet model & Optimizer & Adam \\
+    & Learning rate & 1e-6  \\
+    & Hidden layers & [100, 100] \\
+    & Batch size& 100 \\
+    & $\epsilon$ & 300 \\ 
+    \hline
+    Optimization model & & \\
+    & &  \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsubsection{Implementation details}
+The key of Algorithm 2 lies in the gradients' addition of MSE and surrogate regret, and the combined gradients of combined loss function can be calculated explicitly. However, in actual implementation, the gradients of MSE are calculated implicitly with the help of the Autograd tool \cite{Paszke2019} in Pytorch, and in contrast the gradients of surrogate regret are calculated explicitly by solving MILP problem. 
+
+To tackle with these two distinct ways of gradients calculation, the updating of combined gradients is divided into three steps: 1) calculate the gradients of surrogate regret based on Equation (\ref{SPO+grad}), then feed the gradients into the tensors of predicted prices, back-propagate the gradients for leaf nodes in calculation graph, and retain the gradients for leaf nodes; 2) calculate and back-propagate the weighted MSE loss of prediction prices to the same leaf nodes; 3) update the values of leaf nodes based on accumulated gradients. The combined gradients updating is actually achieved by twice back-propagating and only once updating.
+
+\subsection{Linear prediction model}
+We first apply the proposed combined gradients to train linear prediction model and compare with different gradients designs.
+
+\subsubsection{Training process}
+
+\subsubsection{Performance evaluation}
+After training 50 iterations, we evaluate the trained model by several metrics, \textit{i.e.}, root-mean-square-error (RMSE), MSE, and regret.
+
+\begin{table}[!t]
+  \centering
+  \label{linear_comparison}
+  \caption{Loss function comparison of linear prediction model.}
+  \begin{tabular}{ccccc}
+    \hline
+    Loss & $\epsilon$& RMSE & MAPE & Regret \\
+    \hline
+    Combined loss & & & & \\
+    Surrogate regret& & & & \\
+    MSE & & & & \\ 
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsubsection{Errors in different time intervals}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.5]{figs/SPOoutlines}
+  \caption{RMSE in different time interval of different loss function}
+  \label{interval_comparison_linear}
+\end{figure}
+
+\subsubsection{Results Analysis}
+
+Possible results analysis for the test dataset: When MSE cannot capture the right direction of loss, the surrogate regret can further provide loss reducing gradients. 
+
+\subsection{ResNet prediction model}
+Then, we analyze the performance of combined gradients in ResNet prediction model.
+
+\subsubsection{Training process}
+
+\subsubsection{Performance evaluation}
+
+\begin{table}[!t]
+  \centering
+  \label{ResNet_comparison}
+  \caption{Loss function comparison of ResNet prediction model.}
+  \begin{tabular}{cccc}
+    \hline
+    Loss & RMSE & MAPE & Regret \\
+    \hline
+    Combined loss & & & \\
+    Surrogate regret & & & \\
+    MSE & & & \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsubsection{Errors in different time intervals}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{figs/SPOoutlines}
+  \caption{RMSE in different time interval of different loss function}
+  \label{interval_comparison_Res}
+\end{figure}
+
+\subsubsection{Results Analysis}
+Possible results analysis for the test dataset: [TO DO]
+
+
+\subsection{Gradients changing in the training process}
+
+
+\subsection{Loss functions comparison}
+
+Prediction error reduces while the regret is increasing.
+\subsubsection{Combined gradients}
+
+\subsubsection{MSE gradients}
+
+\subsubsection{Regret gradients}
+
+\subsubsection{Visualizing different kinds of gradients in SGD updating (if possible)} 
+The length, width of the picture denotes the training epochs and the gradients of different loss functions.
+
+\subsubsection{Comparing loss in different time interval}
 
 
 
-\subsection{Loss comparison}
+\subsubsection{Discussion}
+The function of surrogate \textit{regret} embodies different functions in different capacity of prediction model. In small capacity, it can help to find the better direction from the batches. In large capacity, it can help to further improve the generalization performance of model.
 
-\subsection{Decision comparison}
+\subsection{Optimization model comparison}
+
+\subsection{The impact of different weight parameters}
+
+\subsection{Discussion}
 
 
 \section{Conclusion}
 \subsection{Summary}
 
 \subsection{Future work}
+1. Extension to rolling prediction model, real-time prediction model, economic dispatch model...
 
-\section*{Trashes}
-This work formulates the electricity prices prediction for PDR under the Smart "Predict, then Optimize" framework \cite{Elmachtoub2020}, which combines the prediction model and optimization model. The general form of price-based demand response (PDR) is formulated as a mixed-integer linear programming (MILP) with the linear objective in equation (\ref{PriceDR}). When combined with the prediction model (\ref{Prediction}), the hybrid model is formulated in equation (\ref{TransPDR}).
+\section*{Appendix}
+
+\subsection*{Equivalent form}
+The proof of $P^*(\alpha_i f(x_i)) = P^*(f(x_i))$ is as following:
+\begin{proof}
+  
+\end{proof}
+
+\subsection*{Bayesian minimizer}
+Better illustrations.
+
+\section*{Supplementary}
+\subsection*{Conventional formulation}
+This work formulates the electricity prices prediction for PDR under the Smart "Predict, then Optimize" framework \cite{Elmachtoub2020}, which combines the prediction model and optimization model. The general form of price-based demand response (PDR) is formulated as a mixed-integer linear programming (MILP) with the linear objective in Equation (\ref{PriceDR}). When combined with the prediction model (\ref{Prediction}), the hybrid model is formulated in Equation (\ref{TransPDR}).
 \begin{equation}
   \label{TransPDR}
   \begin{aligned}
@@ -321,6 +645,26 @@ This work formulates the electricity prices prediction for PDR under the Smart "
   \end{aligned}
 \end{equation}
 where $\mathcal{D}_x$ is the conditional distribution of predicted price $\lambda$ under the input features $x$. And the $\mathbb{E}_{\lambda \sim \mathcal{D}_x} [\lambda^T | x]$ is the prediction electricity prices $\hat{\lambda}$.
+
+% Proof of Equation (\ref{SPO+deduction}):
+
+% \begin{equation}
+%   \label{SPO+deduction1}
+%   \begin{aligned}
+%     \min_{\theta} &\frac{1}{n} \sum_{i=1}^n \lim_{\alpha_i \to \infty } \{ \max_{P \in \Phi} \{\lambda^T P - \alpha_i f(x_i)^T P \} + \alpha_i c^*(\hat{\lambda}) \} - c^*(\hat{\lambda}) \\ 
+%     & \leq \inf_\alpha \{\max_{\omega \in W^*(\hat{c})} \{ c^T \omega - \alpha \hat{c}^T \omega\} + \alpha z^*(\hat{c}) \} - z^*(c) \\
+%     & = \lim_{\alpha\rightarrow \infty} \{\max_{\omega \in S }\{ c^T \omega - \alpha \hat{c}^T \omega\} + \alpha z^*(\hat{c}) \} - z^*(c) \\
+%   \end{aligned}
+% \end{equation}
+
+\subsection*{Notations}
+\begin{itemize}
+  \item Compare the work in the way of tables and figures;
+  \item Consider visualizing different gradients of SPO and MSE;
+  \item What is the difference between the "actual prices" and "true prices", which one is better ?
+  \item Summarize the distinct description of loss function and gradients.
+  \item From prediction errors, loss function, gradients of loss function, and error of decision, definition of decision errors.
+\end{itemize}
 
 \ifCLASSOPTIONcaptionsoff
   \newpage
@@ -347,6 +691,10 @@ X. Chen, E. Dall’Anese, C. Zhao and N. Li, "Aggregate Power Flexibility in Unb
 
 \bibitem{Mandi2020}
 J. Mandi, E. Demirovic, P. J. Stuckey, and T. Guns, “Smart Predict-and-Optimize for Hard Combinatorial Optimization Problems”, \emph{AAAI}, vol. 34, no. 02, pp. 1603-1610, Apr. 2020
+
+\bibitem{Paszke2019}
+A. Paszke et al., “PyTorch: An Imperative Style, High-Performance Deep Learning Library,” in Advances in Neural Information Processing Systems, 2019, pp. 8024–8035. [Online].
+
 
 \end{thebibliography}
 
