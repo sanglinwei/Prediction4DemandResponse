@@ -23,6 +23,7 @@
 \usepackage{tabularx}
 \usepackage{subfigure}
 \usepackage{color}
+% \usepackage{ulem} 
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
@@ -46,7 +47,7 @@ The abstract goes here.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Price prediction, optimization model, model-driven prediction method
+Price prediction, optimization model, model and data driven
 \end{IEEEkeywords}
 
 
@@ -71,18 +72,19 @@ Renewables are located in various places and feature prominent fluctuation and g
 \subsubsection{Different types of storage}
 
 \subsection{Motivation}
+{\slw Build the gap for the paper: the gap is ignoring the decision errors from the downstream model.}
 
 Conventional power system scheduling and optimization follow the ``Predict, then Optimize" framework, where the connection between prediction model and optimization model is uni-direct. The prediction methods of current researches seldom consider the decision errors in training process. However, the minimizing of prediction errors is not equivalent to minimizing decision errors. So it is essential to consider both the prediction errors and decision errors in training the parameters of prediction model. 
 
-Inspired by the data-driven optimization model, this paper proposes a decision-focused electricity prices prediction framework by utilizing the decision errors from the downstream optimization model. This paper first formulates the price-taker demand response programs and electricity prediction models, utilizes mean-square-errors (MSE) and the regret to measure the prediction errors from prediction model and corresponding decision errors from optimization model, and derives the gradients of surrogate regret with respect to predicted prices. Based on the gradients of MSE and surrogate regret, this paper proposes a combined stochastic gradient decent (SGD) method for PDR decision. Finally, this paper discusses the decision errors reducing performance in different capacities of prediction model, which is compared with single MSE and single surrogate regrets. 
+Inspired by the data-driven optimization model, this paper proposes a decision-focused electricity prices prediction framework by utilizing the decision errors from the downstream optimization model. This paper first formulates the price-taker demand response programs and electricity prediction models, utilizes mean-square-errors (MSE) and the regret to measure the prediction errors from prediction model and corresponding decision errors from optimization model, and derives the gradients of surrogate regret with respect to predicted prices. Based on the gradients of MSE and surrogate regret, this paper proposes a hybrid stochastic gradient decent (SGD) method for PDR decision. Finally, this paper discusses the decision errors reducing performance in different capacities of prediction model, which is compared with single MSE and single surrogate regrets. 
 
 \subsection{Contributions}
 The main contributions of this work can be summarized as:
 \begin{enumerate}
   \item To the authors' best knowledge, this paper proposes a decision-focused electricity price prediction framework for price-taker demand response programs, which \textbf{first} takes the advantage of both prediction errors and decision errors to train the parameters of prediction models.
   \item The regret is utilized to measure decision errors sourcing from prediction errors, and then the surrogate regret is further proposed to derive the gradients with respect to predicted prices for learning.
-  \item The combined loss function is proposed to balance prediction errors and decision errors, and its gradients are derived. In actual implementation, gradients of combined loss function are back-propagated to parameters of prediction model by twice back-propagation, \textit{i.e.}, surrogate regret gradients and weighted MSE propagation.
-  \item Numerical experiments verify the proposed combined gradients can further reduce decision loss when MSE loss have reached its limits.
+  \item The hybrid loss function is proposed to balance prediction errors and decision errors, and its gradients are derived. In actual implementation, gradients of hybrid loss function are back-propagated to parameters of prediction model by twice back-propagation, \textit{i.e.}, surrogate regret gradients and weighted MSE propagation.
+  \item Numerical experiments verify the proposed hybrid gradients can further reduce decision loss when MSE loss have reached its limits.
 \end{enumerate}
 
 \subsection{Related researches}
@@ -100,6 +102,8 @@ This paper reverses the calculation flow from downstream optimization model to u
 \subsubsection{Under decision-focused machine learning}
 Frontier researches have pay more attention to bridging the gap between machine learning methods with conventional optimization methods. The machine learning method provides more data insight to optimization model, while in the same time the optimization model leads to the more interpretability of complex machine learning models. (Possible networks: input convex neural networks, cvxlayers) In the area of smart grid, the connection can have concrete application scenarios.
 
+\subsection{Organization of this paper}
+The rest of this paper is organized as follows. Section II presents the formulation of conventional prediction and then optimization framework. Section III proposes decision-focused prediction framework and hybrid stochastic gradient methods to training prediction model. Section IV evaluates the effectiveness of proposed framework and method by numerical experiments. Section V summarizes this paper and evisions possible future direction.
 
 \section{Problem Formulation}
 Overall formulation (price taker). {\slw Overall illustration on the overall framework.}
@@ -381,7 +385,7 @@ Inequation (\ref{deductionofregret1}) is actually a dual form of an equation, an
   \end{aligned}
 \end{equation}
 
-When combined with previous prediction model formulation (\ref{Prediction}), the loss reducing target function of the prediction model can be further extended in Equation (\ref{SPO+deduction}).
+When hybrid with previous prediction model formulation (\ref{Prediction}), the loss reducing target function of the prediction model can be further extended in Equation (\ref{SPO+deduction}).
 \begin{figure*}[!t]
   \begin{equation}
     \label{SPO+deduction}
@@ -439,11 +443,11 @@ Based on the definition of surrogate regret of PDR decision, the gradient of reg
   \end{aligned}
 \end{equation*}
 
-\subsection{Combined SGD method for PDR decision}
-MSE and surrogate regret focus on the prediction errors and decision errors individually, which views prediction loss from the perspectives of prediction model and decision model. But they can be combined for better trade-off, and hence this paper proposes a decision-focused stochastic gradient decent (SGD) method for training prediction model by utilizing the combined loss function (\ref{SPO+comb+loss}) and its derivatives (\ref{SPO+comb}).
+\subsection{Hybrid SGD method for PDR decision}
+MSE and surrogate regret focus on the prediction errors and decision errors individually, which views prediction loss from the perspectives of prediction model and decision model. But they can be combined in training for better trade-off, and hence this paper proposes a decision-focused stochastic gradient decent (SGD) method for training prediction model by utilizing the hybrid loss function (\ref{SPO+comb+loss}) and its derivatives (\ref{SPO+comb}).
 
-\begin{definition}[Combined loss function]
-  The combined loss is the weighted sum of MSE (\ref{MSE}) and surrogate \textit{regret} (\ref{lossofregret2}).
+\begin{definition}[Hybrid loss function]
+  The hybrid loss is the weighted sum of MSE (\ref{MSE}) and surrogate \textit{regret} (\ref{lossofregret2}).
 \end{definition}
 
 \begin{equation}
@@ -456,8 +460,8 @@ MSE and surrogate regret focus on the prediction errors and decision errors indi
 \end{equation}
 where $\epsilon$ is a weighted coefficient on MSE, which implies the emphasis extent of prediction errors.
 
-\begin{lemma}[Hybrid gradients of the combined \textit{regret} and MSE to predicted prices]
-  The hybrid gradients of combined \textit{regret} and MSE to predicted prices are derived from Equation (\ref{gradientsofMSE}) and (\ref{SPO+grad}):
+\begin{lemma}[Hybrid gradients of the combining \textit{regret} and MSE to predicted prices]
+  The hybrid gradients of combining \textit{regret} and MSE to predicted prices are derived from Equation (\ref{gradientsofMSE}) and (\ref{SPO+grad}):
 \end{lemma}
 
 \begin{equation}
@@ -467,11 +471,11 @@ where $\epsilon$ is a weighted coefficient on MSE, which implies the emphasis ex
   \end{aligned}
 \end{equation}
 
-The combined gradients of combined loss function can be calculated explicitly theoretically by \ref{SPO+comb}. However, in actual implementation, the gradients of MSE are calculated implicitly with the help of the Autograd tool \cite{Paszke2019} in Pytorch, and in contrast the gradients of surrogate regret are calculated explicitly by solving MILP problem in \ref{SPO+grad}. 
+The gradients of hybrid loss function can be calculated explicitly theoretically by \ref{SPO+comb}. However, in actual implementation, the gradients of MSE are calculated implicitly with the help of the Autograd tool \cite{Paszke2019} in Pytorch, and in contrast the gradients of surrogate regret are calculated explicitly by solving MILP problem in \ref{SPO+grad}. 
 
-To tackle with these two distinct ways of gradients calculation, the updating of combined gradients is divided into three steps: 1) calculate the gradients of surrogate regret based on Equation (\ref{SPO+grad}), then feed the gradients into the tensors of predicted prices, back-propagate the gradients for leaf nodes in calculation graph, and retain the gradients for leaf nodes; 2) calculate and back-propagate the weighted MSE loss of prediction prices to the same leaf nodes; 3) update the values of leaf nodes based on accumulated gradients. The combined gradients updating is actually achieved by twice back-propagating and only once updating.
+To tackle with these two distinct ways of gradients calculation, the updating of hybrid gradients is divided into three steps: 1) calculate the gradients of surrogate regret based on Equation (\ref{SPO+grad}), then feed the gradients into the tensors of predicted prices, back-propagate the gradients for leaf nodes in calculation graph, and retain the gradients for leaf nodes; 2) calculate and back-propagate the weighted MSE loss of prediction prices to the same leaf nodes; 3) update the values of leaf nodes based on accumulated gradients. The hybrid gradients updating is actually achieved by twice back-propagating and only once updating.
 
-Based on the above derivation and discussion, this paper proposes the combined SGD method for PDR decision to achieve the trade-off between the prediction errors and decision errors. It should be noted that proposed method can apply for both simple linear prediction models and complex deep learning models.
+Based on the above derivation and discussion, this paper proposes the hybrid SGD method for PDR decision to achieve the trade-off between the prediction errors and decision errors. It should be noted that proposed method can apply for both simple linear prediction models and complex deep learning models.
 
 \begin{algorithm}[!t]
   \label{CombSGD}
@@ -486,9 +490,9 @@ Based on the above derivation and discussion, this paper proposes the combined S
       \FOR{ $i$ = 1, ... $N$}
       \STATE Predict prices: $\hat{\lambda} = f(x)$;
       \STATE \textbf{Calculate} the weighted gradients of MSE based on the Autograd tools;
-      \STATE \textbf{Back-propagate} the weighted gradients of MSE to the parameters of prediction model; $$\frac{\partial L^{Comb}}{\partial \hat{\theta}} += \frac{\partial L^{MSE}}{\partial \hat{\theta}}$$
+      \STATE \textbf{1st Back-propagate} the weighted gradients of MSE to the parameters of prediction model; $$\frac{\partial L^{Comb}}{\partial \hat{\theta}} += \frac{\partial L^{MSE}}{\partial \hat{\theta}}$$
       \STATE \textbf{Calculate} gradients of surrogate \textit{regret} according to Equation (\ref{gradientsofregret}): $$\frac{\partial L^{regret}(\hat{\lambda}) }{\partial \hat{\lambda}} =  \lambda^T P^*(\lambda) - \lambda^T P^*(\hat{\lambda})$$
-      \STATE \textbf{Back-propagate} the gradients of surrogate \textit{regret} to the parameters of prediction model;$$\frac{\partial L^{Comb}}{\partial \theta} += \frac{\partial L^{regret}}{\partial \hat{\lambda}} \frac{\partial \hat{\lambda}}{\partial \theta}$$
+      \STATE \textbf{2nd Back-propagate} the gradients of surrogate \textit{regret} to the parameters of prediction model;$$\frac{\partial L^{Comb}}{\partial \theta} += \frac{\partial L^{regret}}{\partial \hat{\lambda}} \frac{\partial \hat{\lambda}}{\partial \theta}$$
       \ENDFOR
       \STATE Update model parameters in batches: $$\theta = \theta - \alpha \frac{\partial L^{Comb}}{\partial \theta}; \frac{\partial L^{Comb}}{\partial \theta} = 0$$
       \STATE Evaluate the model in validation dataset;
@@ -499,7 +503,7 @@ Based on the above derivation and discussion, this paper proposes the combined S
 \end{algorithm}
 
 As shown in algorithm 2, firstly, the data processing conducts 
-pre-processing, feature engineering, and dataset partition  as mentioned in section II-B; secondly, training processing samples mini-batch datasets from the whole dataset, calculates the gradients of MSE and surrogate \textit{regret}, accumulates each points' gradients in one mini-batch, and updates the parameters of prediction model in batches. The way of mini-batch updating reduces the updating gradients' number for acceleration. After each batch updating, the model in validation dataset is evaluated. In actual implementation with Pytorch package featuring autograd tools, the combined loss back-propagating process is divided into three processes: 1) calculate surrogate \textit{regret} gradients, back-propagates newly gradients to model parameters, and retain the gradients; 2) calculate weighted MSE gradients, back-propagates the  gradients again, and accumulate the above two gradients with respect to corresponding parameters. Finally, the trained model is applied for online electricity prices prediction. {\slw Rewrite this part}
+pre-processing, feature engineering, and dataset partition  as mentioned in section II-B; secondly, training processing samples mini-batch datasets from the whole dataset, calculates the gradients of MSE and surrogate \textit{regret}, accumulates each points' gradients in one mini-batch, and updates the parameters of prediction model in batches. The way of mini-batch updating reduces the updating gradients' number for acceleration. After each batch updating, the model in validation dataset is evaluated. In actual implementation with Pytorch package featuring autograd tools, the hybrid loss back-propagating process is divided into three processes: 1) calculate surrogate \textit{regret} gradients, back-propagates newly gradients to model parameters, and retain the gradients; 2) calculate weighted MSE gradients, back-propagates the  gradients again, and accumulate the above two gradients with respect to corresponding parameters. Finally, the trained model is applied for online electricity prices prediction. {\slw Rewrite this part}
 
 \subsection{Discussion}
 
@@ -573,15 +577,15 @@ The hyperparameter setting also has two parts, \textit{i.e.}, ResNet model and P
 \subsection{Performance of the proposed prediction model}
 
 \subsubsection{Training process}
-Fig. \ref{Training_process} visualizes MSE and regret changing in training the decision-focused ResNet prediction model under the setting of Table II. As training epochs increases, the MSE of three split datasets increase firstly and then decrease at around 23\textit{th} epoch in Fig. \ref{Training_process}(a). In contrast, the regrets of three split datasets decrease shapely at first and then flat at around 45\textit{th} epoch in Fig. \ref{Training_process}(b). 
+Fig. \ref{Training_process} visualizes MSE and regret changing in training the decision-focused ResNet prediction model under the setting of Table II. As training epochs increases, the MSE of three split datasets increase firstly and then decrease at around 23rd epoch in Fig. \ref{Training_process}(a). In contrast, the regrets of three split datasets decrease shapely at first and then flat at around 45th epoch in Fig. \ref{Training_process}(b). 
 
 The different loss changing curves of MSE and regret show that predicted prices under initialized parameters of ResNet have low MSE but high regret. This implies MSE does not correspond to regret in some circumstance. The mere consideration of MSE in training prediction model is not comprehensive.
 
 \begin{figure}[ht]
   \centering
-  \subfigure[The changing process of MSE]{\includegraphics[scale=0.25]{figs/mse_task_layer50_lam10_epoch_50_Net.png}}
+  \subfigure[The changing process of MSE]{\includegraphics[scale=0.65]{figs/training_process_mse.png}}
   \qquad
-  \subfigure[The changing process of regret]{\includegraphics[scale=0.25]{figs/spo_task_layer50_lam10_epoch_50_Net.png}} 
+  \subfigure[The changing process of regret]{\includegraphics[scale=0.65]{figs/training_process_spo.png}} 
   \caption{The errors changing in the training process.}
   \label{Training_process}
 \end{figure}
@@ -613,16 +617,14 @@ The results of different prediction models are compared in Table III. It is obvi
 
 \subsection{Analysis of the proposed prediction framework}
 
-{\slw Organize the writing of this part and analyze the gradients for deciding the value of $\epsilon$. One framework and one algorithm (with title)}
-
 The proposed decision-focused prediction framework and SGA training algorithm can apply to not only complex but the simple prediction model by changing network structures. To unfold the impact of hybrid loss, this part utilizes the loss to train the linear model (\ref{Linear}) and ResNet model (\ref{ResNet}) respectively. In each prediction model, we further analyze the effect of different weight parameters $\epsilon$ in hybrid loss for deciding its proper value. 
 
 \subsubsection{Linear prediction model}
 
-The proposed hybrid loss is first utilized to train the  linear prediction model (\ref{Linear}) under hybrid loss with different $\epsilon$. For comparison, the surrogate regret loss means $\epsilon$ takes the value of 0, whereas MSE loss means $\epsilon$ takes a large value to ignore the effects of surrogate regret part in hybrid loss.
+The proposed hybrid loss is first utilized to train the simple  linear prediction models (\ref{Linear}) with different $\epsilon$. For comparison, the surrogate regret loss means $\epsilon$ takes the value of 0, whereas MSE loss means $\epsilon$ takes a large value to ignore the effects of surrogate regret part in hybrid loss.
 
 \textbf{Performance evaluation:}
-After 50 times' training, we evaluate the trained model by the same metrics in previous part, \textit{i.e.}, RMSE, MAPE, and regret of PDR.
+After 100 times' training, we evaluate the trained model by the same metrics in previous part, \textit{i.e.}, RMSE, MAPE, and regret of PDR.
 
 \begin{table}[ht]
   \renewcommand{\arraystretch}{1.3}
@@ -648,24 +650,25 @@ As shown in Table IV, with the increasing of $\epsilon$ from 25 to 200, the RMSE
 MSE and surrogate regret loss feature high RMSE, MAPE, and regret when utilized alone. Obviously, the proposed hybrid loss can help guide the small-capacity prediction model to predict and make decisions more accurately, which is in essence the combination of above two losses.
 
 \textbf{Errors in different time intervals:} 
-When $\epsilon$ is 25, the RMSE and MAPE of MSE, surrogate, hybrid loss are similar, but hybrid loss achieves lower regret compared the others. Then we further investigate the hourly prediction errors each time period in Fig. \ref{interval_comparison_linear}. 
+When $\epsilon$ is 25, the RMSE and MAPE of MSE, surrogate regret, hybrid loss are similar, but hybrid loss achieves lower regret compared the others. Then we further investigate the hourly prediction errors each time period in Fig. \ref{interval_comparison_linear}. 
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.38]{figs/time_interval_com_lr.png}
+  \includegraphics[scale=1]{figs/time_interval_com_lr_sf.png}
   \caption{RMSE in different time interval of different loss function by linear model.}
   \label{interval_comparison_linear}
 \end{figure}
 
-As shown in Fig. \ref{interval_comparison_linear}, it is interesting that though the whole prediction errors under above three losses are similar, the distributions of prediction errors and regret are quite different. This verifies the effectiveness of hybrid loss for guiding the prediction model to make the prediction for less decision errors.
+As shown in Fig. \ref{interval_comparison_linear}, though the whole prediction errors under above three losses are similar, the time distribution of prediction errors under MSE and surrogate regret embodies high variation than that under hybrid loss.  This verifies the effectiveness of hybrid loss for guiding the prediction model to make the prediction for less decision errors.
 
 \textbf{Results analysis:} 
-Above numerical experiments provide valuable insights of the proposed hybrid loss in small capacity models: 1) hybrid loss can take advantage of the gradients' information from prediction errors and decision errors to achieve more accurate prediction and decision; 2) With the increasing emphasis on MSE, the prediction errors is reducing all alone while decision errors go down first and up after.
+Above numerical experiments provide valuable insights of the proposed hybrid loss in small capacity models: i) hybrid loss can take advantage of the gradients' information from both prediction errors and decision errors to achieve more accurate prediction and decision; ii) With the increasing emphasis on MSE, the prediction errors is reducing all alone while decision errors go down first and up after.
 
 \subsubsection{ResNet prediction model}
-Then, we analyze the performance of combined gradients in ResNet prediction model. 
+Then, the hybrid loss is utilized to train the complex ResNet models (\ref{ResNet}) with different $\epsilon$. Similarly, the surrogate regret and MSE loss are compared in this situation. 
 
 \textbf{Performance evaluation:}
+After 50 times' training, we evaluate the trained ResNet model by the same metrics previously. The prediction and decision performance of different loss function design is measure in Table V. 
 
 \begin{table}[ht]
   \renewcommand{\arraystretch}{1.3}
@@ -686,19 +689,37 @@ Then, we analyze the performance of combined gradients in ResNet prediction mode
   \end{tabular}
 \end{table}
 
-\textbf{Errors in different time intervals:}
+Similarly to linear models, with the increasing of $\epsilon$ from 25 to 100, prediction models' RMSE and MAPE are decreasing correspondingly, but models' regret are increasing, which means the models' prediction accuracy is improved at the cost of reducing decision accuracy. 
+
+Comparing with single loss design, MSE features low RMSE and MAPE but high regret; while surrogate regret features high RMSE and MAPE but low regret. Though hybrid loss models endure a little higher regret than surrogate regret model, it apparently reduces the RMSE and MAPE of single loss models. 
+
+\textbf{Errors in different time intervals:} When $\epsilon$ takes the value of 25, the RMSE of MSE and hybrid loss is similar, which is lower than surrogate regret model. We further investigate hourly prediction errors.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.38]{figs/time_interval_com.png}
+  \includegraphics[scale=1]{figs/time_interval_com_sf.png}
   \caption{RMSE in different time intervals of different loss function by ResNet model.}
   \label{interval_comparison_Res}
 \end{figure}
 
+As shown in Fig. \ref{interval_comparison_Res}, though the hourly prediction errors of surrogate regret is higher than those of MSE and hybrid loss, it has the lowest decision errors. The time distribution of prediction errors under MSE embodies large variation with high prediction errors in the afternoon (12, 13, and 16), which leads to wrong decisions in PDR. In contrast, the time distribution of prediction errors under hybrid loss embodies low variation and time-stable prediction loss.
+
 \textbf{Results analysis:}
+Numerical experiments in ResNet model help further capture the insights of hybrid loss in large capacity prediction models: i) the updating directions from prediction errors and decision errors are not consistent, which needs to be traded-off; ii) the gradients from surrogate regret tends to flatten the time-distribution of prediction errors, which leads to the more accurate decision.
 
 \subsubsection{Discussion}
-Above discuss the impact of weight parameter in linear and ResNet prediction model.
+
+Above discusses the impact of hybrid loss in small-capacity (linear model), large-capacity (ResNet) prediction models and analyzes the effect of weight parameter $\epsilon$ numerically in each prediction model, which can broaden its application in various models and scenarios. From numerical experiments, the prediction accuracy of prediction model is not consistent with its decision accuracy, that is, low prediction errors does not mean low decision errors. The proposed hybrid loss can take advantage of both prediction errors and decision errors to achieve more accurate prediction and decision by combining the gradients from MSE and surrogate regret.
+
+\textbf{Application analysis:}
+Small-capacity and large-capacity models can be interpreted as following two typical cases:
+\begin{itemize}
+  \item Case 1 : electricity prices is hard to predict accurately in some circumstances due to its uncertainty. In this case, hybrid loss can help reduce both prediction errors and decision errors;
+  \item Case 2 : electricity prices also show regularity and can be predicted accurately in some circumstances. In this case, hybrid loss can also help reduce prediction errors at the cost of increasing some decision errors comparing to surrogate regret.
+\end{itemize}
+
+\textbf{Weight parameters analysis:}
+{\slw Consider plotting the MSE, MAPE, and regret with respect to the $\epsilon$. Add figures here.}
 
 \textbf{Gradients analysis:} 
 {\slw Roughly statement: it is hard to direct compare the value of two kind loss function regret and MSE, so to be consistent, we compare their gradients with respect to predicted prices.}
@@ -712,8 +733,6 @@ Above discuss the impact of weight parameter in linear and ResNet prediction mod
 1. Extension to rolling prediction model, real-time prediction model, economic dispatch model...
 
 2. Adaptive weighted parameters' formulation.
-
-\section*{Acknowledge}
 
 \appendices
 
@@ -751,9 +770,6 @@ To better illustrate the impact of weight parameters, we further analyze the cha
 The length, width of the picture denotes the training epochs and the gradients of different loss functions.
 
 
-
-
-
 \section*{Acknowledge}
 The authors would like to thank ... for their advice and instruction in completing this paper.
 
@@ -761,18 +777,18 @@ The authors would like to thank ... for their advice and instruction in completi
 \subsection*{Notations}
 \begin{itemize}
   \item Compare the work in the way of tables and figures;
-  \item Consider visualizing different gradients of SPO and MSE;
-  \item What is the difference between the "actual prices" and "true prices", which one is better ?
+  \item Consider {\slw visualizing different gradients of SPO and MSE};
+  \item \textbf{Terminology consideration and discrimination:} the {\slw ``predicted prices'', ``actual prices" and "true prices"}, which one is better ? {\slw Actual decisions and \textbf{oracle } decisions are both optimal decisions under different prices.}
   \item Summarize the distinct description of loss function and gradients.
-  \item From prediction errors, loss function, gradients of loss function, and error of decision, definition of decision errors, the flow of what we want to do !!!
-  \item Not flow together, not clear, not concise and coherence. 
-  \item The word choice of 'forecasting' or 'predicting', and which is better?
+  \item From prediction errors, loss function, gradients of loss function, and error of decision, definition of decision errors, the flow of what we want to do !!! {\slw The logic line of this problem: The prediction errors lead to decision errors, then we utilize the MSE and regret metrics to measure these errors, and finally the utilization is based on the gradients' deduction of proposed methods.}
+  \item {\slw Principles: try to flow together, clear, concise, consistent and coherent}. 
+  \item The word choice of 'forecasting' or 'predicting', and which is better? {\slw Prediction and forecast is more common in this framework.}
   \item We should compare test curve or training curves ?
   \item The training may not be stable for some time, and prediction model may not be stable?
   \item The log choice of predicted prices ?
   \item Compare different predicted prices and decision curves under different situations;
-  \item Comparable loss functions;
-  \item The first pages to illustrate the main contribution of this framework;
+  \item {\slw Comparable loss functions};
+  \item The first pages to illustrate the main contribution of this framework, {\slw consider going into the main theme directly};
   \item The colors in bar-plot are not explicit to clear delivery;
   \item The clear delivery of the paper (who to emphasize and);
   \item Concise and explicit;
@@ -783,6 +799,7 @@ The authors would like to thank ... for their advice and instruction in completi
   \item Think about the title of two parts {\slw what xxx framework} and {\slw what xxx training algorithm};
   \item {\slw Consider the legends of figures; }
   \item {\slw Exist some nadir point for RMSE and MAPE;}
+  \item {\slw Identify the gap and fill the gap in the organizing.}
 \end{itemize}
 
 
