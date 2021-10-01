@@ -23,7 +23,6 @@
 \usepackage{tabularx}
 \usepackage{subfigure}
 \usepackage{color}
-% \usepackage{ulem} 
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
@@ -59,31 +58,9 @@ Price prediction, optimization model, model and data driven
 
 \IEEEPARstart{W}{ith} the growth of battery energy storage system (BESS) in power system, electricity prices prediction becomes important in BESS management and scheduling \cite{Chitsaz2018}. Electricity prices are decided by electricity supply-demand and become volatile due to the high penetration of renewables and deregulation of electricity market \cite{Peng2018}. Hence, its accurate prediction is difficult. BESS is taken as a price-taker in the energy market, which schedules its charging/discharging time period based on predicted prices to gain arbitrage from the market\cite{Arteaga2019}. For BESS optimal decisions, predicted prices from prediction model is transmitted to downstream BESS scheduling model, which makes the optimal charging/discharging decisions over the period of interest to maximize the benefits of BESS's arbitrage. This process is called ``predict, then optimize'' framework \cite{Elmachtoub2020}. In this framework, various electricity price prediction methods have been proposed in the past five years. 
 
-However, more accurate electricity price prediction is not necessarily equivalent to more benefits of BESS's arbitrage. The main reason is that the objective of common prediction model is usually to minimize the prediction error, which describes the distance between predicted prices and true prices. In contrast, BESS focuses on maximizing benefits from the electricity price's fluctuation. This can be equivalent to minimizing the distance between actual optimal decisions under the predicted prices and oracle optimal decisions under the true prices, which is called the decision error in this paper. The decision error does not coincide with the prediction error. 
+However, more accurate electricity price prediction is not necessarily equivalent to more benefits of BESS's arbitrage. The main reason is that the objective of common prediction model is usually to minimize the prediction error, which describes the distance between predicted prices and true prices. In contrast, BESS focuses on maximizing benefits from the electricity price's fluctuation. This can be equivalent to minimizing the distance between actual optimal decisions under the predicted prices and oracle optimal decisions under the true prices, which is called the decision error in this paper. The decision error does not necessarily coincide with the prediction error. 
 
-This motivates us to further take the decision error from downstream BESS scheduling model  
-
-\subsection{Related works}
-
-\subsection{Background}
-
-{\slw Key: build the gap for the paper: the gap is ignoring the decision errors from the downstream model.}
-
-\subsubsection{Price-taker demand response}
-
-\subsubsection{Electricity prices prediction}
-
-\subsubsection{``Prediction, then Optimize'' scheme}
-
-\subsubsection{Prediction under the lens of optimization model}
-
-\subsubsection{Different types of storage}
-
-\subsection{Motivation}
-
-Conventional power system scheduling and optimization follow the ``Predict, then Optimize" framework, where the connection between prediction model and optimization model is uni-direct. The prediction methods of current researches seldom consider the decision errors in training process. However, the minimizing of prediction errors is not equivalent to minimizing decision errors. So it is essential to consider both the prediction errors and decision errors in training the parameters of prediction model. 
-
-Inspired by the data-driven optimization model, this paper proposes a decision-focused electricity prices prediction framework by utilizing the decision errors from the downstream optimization model. This paper first formulates the price-taker demand response programs and electricity prediction models, utilizes mean-square-errors (MSE) and the regret to measure the prediction errors from prediction model and corresponding decision errors from optimization model, and derives the gradients of surrogate regret with respect to predicted prices. Based on the gradients of MSE and surrogate regret, this paper proposes a hybrid stochastic gradient decent (SGD) method for PDR decision. Finally, this paper discusses the decision errors reducing performance in different capacities of prediction model, which is compared with single MSE and single surrogate regrets. 
+This motivates us to take advantage of the decision error from downstream BESS scheduling model in training prediction model, inspired by \cite{Elmachtoub2020}. So we propose a decision-focused electricity prices prediction framework to achieve this end. The target of prediction model in the proposed framework focuses on minimizing not only prediction error in prediction model but decision error in scheduling model. However, prediction error comes from the scheduling model and cannot be utilized to guide prediction training directly. To tackle this challenge, we first measure the decision error by regret, transfer the regret into tractable form denoted by surrogate regret, and derive the gradients of surrogate regret with respect to predicted prices. And these gradients direct the prediction models updating to reduce model's decision error. The prediction error is measured by mean-square-error (MSE) metric. Then we design a hybrid loss function by combining MSE and surrogate regret and derive the hybrid gradients for guiding training to balance the prediction and decision errors of prediction models. Finally, we discuss the performance of reducing prediction and decision errors in different capacities of prediction model. 
 
 \subsection{Contributions}
 The main contributions of this work can be summarized as:
@@ -94,8 +71,9 @@ The main contributions of this work can be summarized as:
   \item Numerical experiments verify the proposed hybrid gradients can further reduce decision loss when MSE loss have reached its limits.
 \end{enumerate}
 
-\subsection{Related researches}
-Possible related researches:
+
+\subsection{Related works}
+
 
 \subsubsection{Electricity prices prediction}
 
