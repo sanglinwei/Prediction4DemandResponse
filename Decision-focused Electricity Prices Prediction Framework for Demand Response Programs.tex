@@ -30,7 +30,8 @@
 \newtheorem{remark}{Remark}
 \newtheorem{lemma}{Lemma}
 
-\newcommand{\slw}{\color{blue}}  
+\newcommand{\slw}{\color{blue}}
+\newcommand{\prob}{\color{red}}
 
 \begin{document}
 
@@ -56,23 +57,29 @@ Price prediction, optimization model, model and data driven
 
 \section{Introduction}
 
-\IEEEPARstart{S}{mart} grid has witnessed the burgeoning of prediction methods and techniques from machine learning domain for renewables and electricity prediction. With the transition to low carbon energy society, the renewables is replacing conventional fossil energies to taking up a larger proportion in generating side. Due to the uncertainty and fluctuation of renewables, a large amount of storage are introduced to the systems.
+\IEEEPARstart{W}{ith} the growth of battery energy storage system (BESS) in power system, electricity prices prediction becomes important in BESS management and scheduling \cite{Chitsaz2018}. Electricity prices are decided by electricity supply-demand and become volatile due to the high penetration of renewables and deregulation of electricity market \cite{Peng2018}. Hence, its accurate prediction is difficult. BESS is taken as a price-taker in the energy market, which schedules its charging/discharging time period based on predicted prices to gain arbitrage from the market\cite{Arteaga2019}. For BESS optimal decisions, predicted prices from prediction model is transmitted to downstream BESS scheduling model, which makes the optimal charging/discharging decisions over the period of interest to maximize the benefits of BESS's arbitrage. This process is called ``predict, then optimize'' framework \cite{Elmachtoub2020}. In this framework, various electricity price prediction methods have been proposed in the past five years. 
 
-Renewables are located in various places and feature prominent fluctuation and generation cost, which leads to the fluctuation of electricity prices in retail markets. To minimize the operation cost, accurate electricity price prediction is becoming important to making scheduling for economic dispatching and unit commitment in the system.
+However, more accurate electricity price prediction is not necessarily equivalent to more benefits of BESS's arbitrage. The main reason is that the objective of common prediction model is usually to minimize the prediction error, which describes the distance between predicted prices and true prices. In contrast, BESS focuses on maximizing benefits from the electricity price's fluctuation. This can be equivalent to minimizing the distance between actual optimal decisions under the predicted prices and oracle optimal decisions under the true prices, which is called the decision error in this paper. The decision error does not coincide with the prediction error. 
+
+This motivates us to further take the decision error from downstream BESS scheduling model  
+
+\subsection{Related works}
 
 \subsection{Background}
+
+{\slw Key: build the gap for the paper: the gap is ignoring the decision errors from the downstream model.}
+
 \subsubsection{Price-taker demand response}
 
 \subsubsection{Electricity prices prediction}
 
 \subsubsection{``Prediction, then Optimize'' scheme}
 
-\subsubsection{Predicting under the lens of optimization model}
+\subsubsection{Prediction under the lens of optimization model}
 
 \subsubsection{Different types of storage}
 
 \subsection{Motivation}
-{\slw Build the gap for the paper: the gap is ignoring the decision errors from the downstream model.}
 
 Conventional power system scheduling and optimization follow the ``Predict, then Optimize" framework, where the connection between prediction model and optimization model is uni-direct. The prediction methods of current researches seldom consider the decision errors in training process. However, the minimizing of prediction errors is not equivalent to minimizing decision errors. So it is essential to consider both the prediction errors and decision errors in training the parameters of prediction model. 
 
@@ -80,7 +87,7 @@ Inspired by the data-driven optimization model, this paper proposes a decision-f
 
 \subsection{Contributions}
 The main contributions of this work can be summarized as:
-\begin{enumerate}
+\begin{enumerate}[\IEEEsetlabelwidth{12)}]
   \item To the authors' best knowledge, this paper proposes a decision-focused electricity price prediction framework for price-taker demand response programs, which \textbf{first} takes the advantage of both prediction errors and decision errors to train the parameters of prediction models.
   \item The regret is utilized to measure decision errors sourcing from prediction errors, and then the surrogate regret is further proposed to derive the gradients with respect to predicted prices for learning.
   \item The hybrid loss function is proposed to balance prediction errors and decision errors, and its gradients are derived. In actual implementation, gradients of hybrid loss function are back-propagated to parameters of prediction model by twice back-propagation, \textit{i.e.}, surrogate regret gradients and weighted MSE propagation.
@@ -94,6 +101,8 @@ Possible related researches:
 
 \subsubsection{Machine learning and optimization}
 
+Introducing some machine learning techniques and the state-of-the-art research papers.
+
 \subsubsection{Decision-focused predicting methods}
 This paper reverses the calculation flow from downstream optimization model to upstream prediction model.
 
@@ -103,7 +112,7 @@ This paper reverses the calculation flow from downstream optimization model to u
 Frontier researches have pay more attention to bridging the gap between machine learning methods with conventional optimization methods. The machine learning method provides more data insight to optimization model, while in the same time the optimization model leads to the more interpretability of complex machine learning models. (Possible networks: input convex neural networks, cvxlayers) In the area of smart grid, the connection can have concrete application scenarios.
 
 \subsection{Organization of this paper}
-The rest of this paper is organized as follows. Section II presents the formulation of conventional prediction and then optimization framework. Section III proposes decision-focused prediction framework and hybrid stochastic gradient methods to training prediction model. Section IV evaluates the effectiveness of proposed framework and method by numerical experiments. Section V summarizes this paper and evisions possible future direction.
+The rest of this paper is organized as follows. Section II presents the formulation of conventional prediction and then optimization framework. Section III proposes decision-focused prediction framework and hybrid stochastic gradient methods to training prediction model. Section IV evaluates the effectiveness of proposed framework and method by numerical experiments. Section V summarizes this paper and envisions possible future direction.
 
 \section{Problem Formulation}
 Overall formulation (price taker). {\slw Overall illustration on the overall framework.}
@@ -510,7 +519,7 @@ pre-processing, feature engineering, and dataset partition  as mentioned in sect
 \section{Experiments}
 To verify the effectiveness of proposed gradients and methods, this paper utilizes six-year hourly real electricity prices and related temperature, load information from PJM for numerical experiments\cite{PJM}. All the proposed methods are implemented by python with Pytorch framework for prediction models and Cvxpy framework for optimization models, which are trained on a MacBook Pro laptop with RAM 16 GB, CPU Intel Core I7 (2.6GHz).
 
-\subsection{Datasets and models formulation}
+\subsection{Datasets and models}
 This work first pre-processes the raw electricity-related data to form the prediction dataset, then extracts the input features and output prices, trains different day-ahead prediction models, and finally evaluates different models and loss function decision by multi-metrics. 
 
 \subsubsection{Data preparing}
@@ -771,7 +780,7 @@ The length, width of the picture denotes the training epochs and the gradients o
 
 
 \section*{Acknowledge}
-The authors would like to thank ... for their advice and instruction in completing this paper.
+The authors would like to thank ... for their valuable advice and instructions in completing this paper.
 
 
 \subsection*{Notations}
@@ -799,10 +808,22 @@ The authors would like to thank ... for their advice and instruction in completi
   \item Think about the title of two parts {\slw what xxx framework} and {\slw what xxx training algorithm};
   \item {\slw Consider the legends of figures; }
   \item {\slw Exist some nadir point for RMSE and MAPE;}
-  \item {\slw Identify the gap and fill the gap in the organizing.}
+  \item {\slw Identify the gap and fill the gap in the organizing;}
+  \item {\slw Point out the limits of systems, and then turn into introducing the main methodology of this paper;}
+  \item {\slw In each section, we should introduce the overall parts of this work, section start introducing and end introducing.}
 \end{itemize}
 
+Introduction schemes:
+\begin{enumerate}
+  \item Background;
+  \item Electricity prices prediction and battery storage;
+  \item End to end stochastic optimization;
+  \item Open source coding;
+\end{enumerate}
 
+Smart grid has witnessed the burgeoning of prediction methods and techniques from machine learning domain for renewables and electricity prediction. With the transition to low carbon energy society, the renewables is replacing conventional fossil energies to taking up a larger proportion in generating side. Due to the uncertainty and fluctuation of renewables, a large amount of storage are introduced to the systems.
+
+Renewables are located in various places and feature prominent fluctuation and generation cost, which leads to the fluctuation of electricity prices in retail markets. To minimize the operation cost, accurate electricity price prediction is becoming important to making scheduling for economic dispatching and unit commitment in the system.
 
 \ifCLASSOPTIONcaptionsoff
   \newpage
@@ -812,17 +833,26 @@ The authors would like to thank ... for their advice and instruction in completi
 
 \begin{thebibliography}{2}
 
+\bibitem{Chitsaz2018}
+H. Chitsaz, P. Zamani-Dehkordi, H. Zareipour, and P. P. Parikh, “Electricity Price Forecasting for Operational Scheduling of Behind-the-Meter Storage Systems,” \emph{IEEE Transactions on Smart Grid}, vol. 9, no. 6, pp. 6612–6622, 2018.
+
+\bibitem{Peng2018}
+L. Peng, S. Liu, R. Liu, and L. Wang,``Effective long short-term memory with differential evolution algorithm for electricity price prediction,” \emph{Energy}, vol. 162, pp. 1301–1314, Nov. 2018.
+
+\bibitem{Arteaga2019}
+J. Arteaga and H. Zareipour, “A Price-Maker/Price-Taker Model for the Operation of Battery Storage Systems in Electricity Markets,” \emph{IEEE Transactions on Smart Grid}, vol. 10, no. 6, pp. 6912–6920, 2019.
+
+\bibitem{Comello2019}
+S. Comello and S. Reichelstein, “The emergence of cost effective battery storage,” \emph{Nature Communications}, vol. 10, no. 1, p. 2038, May 2019.
+
 \bibitem{Donti2017}
 P. Donti, B. Amos, and J. Z. Kolter, “Task-based end-to-end model learning in stochastic optimization,” \emph{Advances in Neural Information Processing Systems}, 2017, pp. 5484–5494.
 
 \bibitem{Wilder2019}
-B. Wilder, B. Dilkina, and M. Tambe, “Melding the Data-Decisions Pipeline: Decision-Focused Learning for Combinatorial Optimization,” AAAI, vol. 33, no. 01, pp. 1658–1665, Jul. 2019.
+B. Wilder, B. Dilkina, and M. Tambe, “Melding the Data-Decisions Pipeline: Decision-Focused Learning for Combinatorial Optimization,” \emph{AAAI}, vol. 33, no. 01, pp. 1658–1665, Jul. 2019.
 
 \bibitem{Elmachtoub2020}
-A. N. Elmachtoub and P. Grigas, “Smart ‘Predict, then Optimize.’” 2020.
-
-\bibitem{Chitsaz2018}
-H. Chitsaz, P. Zamani-Dehkordi, H. Zareipour and P. P. Parikh, "Electricity Price Forecasting for Operational Scheduling of Behind-the-Meter Storage Systems," \emph{IEEE Transactions on Smart Grid}, vol. 9, no. 6, pp. 6612-6622, Nov. 2018.
+A. N. Elmachtoub and P. Grigas, ``Smart `Predict, then Optimize,’ ” \emph{Management Science} [online], doi: 10.1287/mnsc.2020.3922.
 
 \bibitem{Chen2012}
 Z. Chen, L. Wu and Y. Fu, “Real-Time Price-Based Demand Response Management for Residential Appliances via Stochastic Optimization and Robust Optimization," \emph{IEEE Transactions on Smart Grid}, vol. 3, no. 4, pp. 1822-1831, Dec. 2012.
